@@ -1,18 +1,14 @@
-from fastapi import FastAPI, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
 import json
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-# Load data once at startup
-with open("q-vercel-python.json") as f:
+with open("q-vercel-python.json", "r") as f:
     marks_data = json.load(f)
 
 @app.get("/api")
-def get_marks(name: list[str] = Query(...)):
-    # For each requested name, find marks in the data or return None if not found
-    results = []
-    for n in name:
-        mark = marks_data.get(n)
-        results.append({"name": n, "marks": mark})
+async def get_marks(request: Request):
+    names = request.query_params.getlist("name")
+    results = [marks_data.get(name, "Not found") for name in names]
     return JSONResponse(content=results)
